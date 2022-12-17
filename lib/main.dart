@@ -10,8 +10,15 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  var tab = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +33,19 @@ class MyApp extends StatelessWidget {
           Icon(Icons.send)
         ],
       ),
-      body: Container(
-        
+      body: [Text("home"), Text("shop")][tab],
+      bottomNavigationBar: BottomNavigationBar(
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        onTap: (i){
+          setState(() {
+            tab = i;
+          });
+        },
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "home"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "search"),
+        ],
       )
     );
   }
