@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'style.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(
@@ -19,6 +21,18 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   var tab = 0;
+  var data;
+
+  getData() async {
+    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/data.json'));
+    data = jsonDecode(result.body);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +47,7 @@ class _MyAppState extends State<MyApp> {
           Icon(Icons.send)
         ],
       ),
-      body: [Board(), Text("shop")][tab],
+      body: [Board(data : data), Text("null")][tab],
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: false,
         showUnselectedLabels: false,
@@ -52,29 +66,31 @@ class _MyAppState extends State<MyApp> {
 }
 
 class Board extends StatelessWidget {
-  const Board({Key? key}) : super(key: key);
+  const Board({Key? key, this.data}) : super(key: key);
+
+  final data;
 
   @override
   Widget build(BuildContext context) {
+    print(data);
     return ListView.builder(
       itemCount: 3,
-      itemBuilder: (BuildContext context, int index) {
+      itemBuilder: (c, i) {
         return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset('./assets/snowman.jpg'),
-              Row(
-                children: [
-                  Text("좋아요"),
-                  Text("100")
-                ],
-              ),
-              Text("글쓴이"),
-              Text("글 내용")
-            ],
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.network(data[i]['image']),
+            Row(
+              children: [
+                Text("좋아요"),
+                Text((data[i]['likes']).toString())
+              ],
+            ),
+            Text(data[i]['user']),
+            Text(data[i]['content'])
+          ],
         );
       },
     );
   }
 }
-
