@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
           Icon(Icons.send)
         ],
       ),
-      body: [Text("home"), Text("shop")][tab],
+      body: [Board(), Text("shop")][tab],
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: false,
         showUnselectedLabels: false,
@@ -47,6 +47,33 @@ class _MyAppState extends State<MyApp> {
           BottomNavigationBarItem(icon: Icon(Icons.search), label: "search"),
         ],
       )
+    );
+  }
+}
+
+class Board extends StatelessWidget {
+  const Board({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: 3,
+      itemBuilder: (BuildContext context, int index) {
+        return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.asset('./assets/snowman.jpg'),
+              Row(
+                children: [
+                  Text("좋아요"),
+                  Text("100")
+                ],
+              ),
+              Text("글쓴이"),
+              Text("글 내용")
+            ],
+        );
+      },
     );
   }
 }
