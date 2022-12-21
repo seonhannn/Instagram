@@ -27,7 +27,14 @@ class _MyAppState extends State<MyApp> {
       appBar: AppBar(
         title: Text("Instagram"),
         actions: [
-          Icon(Icons.add),
+          IconButton(
+              onPressed: (){
+                Navigator.push(context,
+                  MaterialPageRoute(builder: (c) => Upload())
+                );
+              }, 
+              icon: Icon(Icons.add_box_outlined)
+          ),
           SizedBox(width: 20),
           Icon(Icons.favorite_border),
           SizedBox(width: 20),
@@ -88,8 +95,6 @@ class _BoardState extends State<Board> {
     });
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     if(data != null) {
@@ -117,6 +122,20 @@ class _BoardState extends State<Board> {
           Text("로딩중")
         );
     }
+  }
+}
+
+class Upload extends StatelessWidget {
+  const Upload({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Instagram"),
+      ),
+      body: Text("new page"),
+    );
   }
 }
 
