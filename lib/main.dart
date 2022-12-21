@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'style.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/rendering.dart';
 
-void main() {
+main() {
   runApp(
     MaterialApp(
-      theme: theme,
       home: MyApp()
     )
   );
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  MyApp({Key? key}) : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -21,18 +20,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   var tab = 0;
-  var data;
-
-  getData() async {
-    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/data.json'));
-    data = jsonDecode(result.body);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getData();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,50 +34,89 @@ class _MyAppState extends State<MyApp> {
           Icon(Icons.send)
         ],
       ),
-      body: [Board(data : data), Text("null")][tab],
+      body: [Board(), Text("shopping")][tab],
       bottomNavigationBar: BottomNavigationBar(
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "home"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "search"),
+        ],
         onTap: (i){
           setState(() {
             tab = i;
           });
         },
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "home"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "search"),
-        ],
-      )
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+      ),
     );
   }
 }
 
-class Board extends StatelessWidget {
-  const Board({Key? key, this.data}) : super(key: key);
+class Board extends StatefulWidget {
+  const Board({Key? key}) : super(key: key);
 
-  final data;
+  @override
+  State<Board> createState() => _BoardState();
+}
+
+class _BoardState extends State<Board> {
+
+  var data, moreData;
+  var scroll = ScrollController();
+
+  getData() async {
+    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/data.json'));
+    data = jsonDecode(result.body);
+  }
+
+  addData() async {
+    var moreResult = await http.get(Uri.parse('https://codingapple1.github.io/app/more1.json'));
+    moreData = jsonDecode(moreResult.body);
+    data.add(moreData);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+    scroll.addListener(() {
+      if(scroll.position.pixels == scroll.position.maxScrollExtent) {
+        setState(() {
+          addData();
+        });
+      }
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
-    print(data);
-    return ListView.builder(
-      itemCount: 3,
-      itemBuilder: (c, i) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.network(data[i]['image']),
-            Row(
-              children: [
-                Text("좋아요"),
-                Text((data[i]['likes']).toString())
-              ],
-            ),
-            Text(data[i]['user']),
-            Text(data[i]['content'])
-          ],
+    if(data != null) {
+      return ListView.builder(
+        controller: scroll,
+        itemCount: data.length,
+        itemBuilder: (c, i) {
+          return Column(
+            children: [
+              Image.network(data[i]['image']),
+              Row(
+                children: [
+                  Text("좋아요 "),
+                  Text(data[i]['likes'].toString())
+                ],
+              ),
+              Text(data[i]['user']),
+              Text(data[i]['content'])
+            ],
+          );
+        },
+      );
+    } else {
+        return (
+          Text("로딩중")
         );
-      },
-    );
+    }
   }
 }
+
