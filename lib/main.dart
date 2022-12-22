@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/rendering.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 main() {
   runApp(
@@ -20,6 +22,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   var tab = 0;
+  var userImage;
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +31,16 @@ class _MyAppState extends State<MyApp> {
         title: Text("Instagram"),
         actions: [
           IconButton(
-              onPressed: (){
+              onPressed: () async {
+                var picker = ImagePicker();
+                var image = await picker.pickImage(source: ImageSource.gallery);
+                if(image != null) {
+                  setState(() {
+                    userImage = File(image.path);
+                  });
+                }
                 Navigator.push(context,
-                  MaterialPageRoute(builder: (c) => Upload())
+                  MaterialPageRoute(builder: (c) => Upload(userImage : userImage))
                 );
               }, 
               icon: Icon(Icons.add_box_outlined)
@@ -126,7 +136,8 @@ class _BoardState extends State<Board> {
 }
 
 class Upload extends StatelessWidget {
-  const Upload({Key? key}) : super(key: key);
+  const Upload({Key? key, this.userImage}) : super(key: key);
+  final userImage;
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +145,12 @@ class Upload extends StatelessWidget {
       appBar: AppBar(
         title: Text("Instagram"),
       ),
-      body: Text("new page"),
+      body: Column(
+        children: [
+          Image.file(userImage),
+          Text("이미지 업로드")
+        ],
+      )
     );
   }
 }
