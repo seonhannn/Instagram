@@ -117,8 +117,7 @@ class _BoardState extends State<Board> {
               Image.network(data[i]['image']),
               Row(
                 children: [
-                  Text("좋아요 "),
-                  Text(data[i]['likes'].toString())
+                  Text("좋아요 ${data[i]['likes'].toString()}"),
                 ],
               ),
               Text(data[i]['user']),
