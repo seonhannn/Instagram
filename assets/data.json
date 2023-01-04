@@ -1,0 +1,29 @@
+[
+  {
+    "id" : 0,
+    "image" : "assets/snowman.jpg",
+    "likes" : 5,
+    "date" : "230104",
+    "content" : "1번 글",
+    "liked" : false,
+    "user" : "1번 유저"
+  },
+  {
+    "id" : 1,
+    "image" : "assets/snowman.jpg",
+    "likes" : 10,
+    "date" : "230104",
+    "content" : "2번 글",
+    "liked" : false,
+    "user" : "2번 유저"
+  },
+  {
+    "id" : 2,
+    "image" : "assets/snowman.jpg",
+    "likes" : 15,
+    "date" : "230104",
+    "content" : "3번 글",
+    "liked" : false,
+    "user" : "3번 유저"
+  }
+]
