@@ -79,30 +79,22 @@ class _MyAppState extends State<MyApp> {
   }
 
   // 게시글 데이터 추가하기
-  addBoard() {
+  addBoard(userImage, String userContent) {
     var addData = {
       "id": data.length,
       "image": userImage,
-      "likes": 5,
-      "date": "230104",
+      "likes": 10000,
+      "date": "230105",
       "content": userContent,
       "liked": false,
-      "user": "${data.length}번 유저"
+      "user": "${data.length + 1}번 유저"
     };
 
-    data.insert(0, addData);
+    print(addData);
+
+    data.add(addData);
 
     setState(() {});
-  }
-
-  // 이미지 가져오기
-  getImage() async {
-    var picker = ImagePicker();
-    var image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      userImage = image.path;
-      userContent();
-    }
   }
 
   @override
@@ -113,30 +105,29 @@ class _MyAppState extends State<MyApp> {
         actions: [
           IconButton(
             icon: Icon(Icons.add_box_outlined),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => AddBoard(
-                          getImage: getImage,
-                          userContent: userContent,
-                          data: data,
-                          setUserContent: setUserContent)));
+                            addBoard: addBoard,
+                            setUserContent: setUserContent,
+                            userContent: userContent,
+                            data: data,
+                          )));
+
+              print(data);
             },
           )
         ],
       ),
       body: [
-        Board(
-            userImage: userImage,
-            scroll: scroll,
-            data: data,
-            clickLike: clickLike),
+        Board(scroll: scroll, data: data, clickLike: clickLike),
         Profile(
-            boards: boards,
             following: following,
             follower: follower,
-            follow: follow)
+            follow: follow,
+            data: data)
       ][tab],
       bottomNavigationBar: BottomNavigationBar(
         onTap: (i) {
@@ -155,12 +146,11 @@ class _MyAppState extends State<MyApp> {
 class Board extends StatefulWidget {
   Board(
       {super.key,
-      required this.userImage,
       required this.scroll,
       required this.data,
       required this.clickLike});
 
-  final userImage, scroll, data, clickLike;
+  final scroll, data, clickLike;
 
   @override
   State<Board> createState() => _BoardState();
@@ -217,12 +207,12 @@ class _BoardState extends State<Board> {
 class Profile extends StatefulWidget {
   const Profile(
       {super.key,
-      required this.boards,
       required this.follower,
       required this.following,
-      required this.follow});
+      required this.follow,
+      required this.data});
 
-  final boards, following, follower, follow;
+  final following, follower, follow, data;
 
   @override
   State<Profile> createState() => _ProfileState();
@@ -235,9 +225,8 @@ class _ProfileState extends State<Profile> {
       children: [
         Row(
           children: [
-            Image.asset("./assets/snowman.jpg"),
             Column(
-              children: [Text(widget.boards.toString()), Text("게시물")],
+              children: [Text(widget.data.length.toString()), Text("게시물")],
             ),
             Column(
               children: [Text(widget.follower.toString()), Text("팔로워")],
@@ -268,7 +257,7 @@ class _ProfileState extends State<Profile> {
               ),
             );
           },
-          itemCount: widget.boards,
+          itemCount: widget.data.length,
         ))
       ],
     );
@@ -278,46 +267,225 @@ class _ProfileState extends State<Profile> {
 class AddBoard extends StatefulWidget {
   const AddBoard(
       {super.key,
-      required this.getImage,
+      required this.addBoard,
+      required this.setUserContent,
       required this.userContent,
-      required this.data,
-      required this.setUserContent});
+      required this.data});
 
-  final data, setUserContent, getImage, userContent;
+  final setUserContent, addBoard, userContent, data;
 
   @override
   State<AddBoard> createState() => _AddBoardState();
 }
 
 class _AddBoardState extends State<AddBoard> {
+  final myController = TextEditingController();
+  String userImage = "";
+
+  // 글 저장하기
+  setContent() {
+    widget.setUserContent(myController.text);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    myController.addListener(setContent);
+  }
+
+  @override
+  void dispose() {
+    myController.dispose();
+    super.dispose();
+  }
+
+  // 이미지 가져오기
+  getImage() {
+    userImage = "assets/snowman.jpg";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: Column(
-        children: [
-          Container(
-            child: TextField(
-              onChanged: (value) {
-                widget.setUserContent();
-              },
-              decoration: InputDecoration(labelText: "글 내용을 입력해주세요"),
-            ),
-            width: 600,
-            height: 100,
-          ),
+      appBar: AppBar(
+        title: Text("instagram"),
+        actions: [
           IconButton(
-              onPressed: () {
-                widget.getImage();
-              },
-              icon: Icon(Icons.add)),
-          IconButton(
-              onPressed: () {
-                widget.setUserContent();
-              },
-              icon: Icon(Icons.save)),
+            icon: Icon(Icons.home),
+            onPressed: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => MyApp()));
+            },
+          )
         ],
       ),
+      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+                onPressed: () {
+                  getImage();
+                  print(userImage);
+                  if (userImage != null) {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: SingleChildScrollView(
+                                child: Text("이미지가 저장되었습니다.")),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("확인"))
+                            ],
+                          );
+                        });
+                  } else {
+                    print("이미지 없음");
+                  }
+                },
+                icon: Icon(Icons.add_a_photo)),
+
+            // save !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            IconButton(
+                onPressed: () {
+                  if (myController.text.trim.toString().isNotEmpty &&
+                      userImage.isNotEmpty) {
+                    widget.addBoard(
+                        userImage, myController.text.trim().toString());
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content:
+                                SingleChildScrollView(child: Text("저장 됐어용")),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("확인"))
+                            ],
+                          );
+                        });
+                    /*
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => MyApp()));
+                        */
+                  } else {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: SingleChildScrollView(
+                                child: Text("글과 사진을 모두 입력해야합니다")),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("확인"))
+                            ],
+                          );
+                        });
+                  }
+                },
+                icon: Icon(Icons.save))
+          ],
+        ),
+        Row(
+          children: [
+            SizedBox(
+              width: 500,
+              child: TextField(
+                controller: myController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                    labelText: "글 내용을 입력해주세요.", border: OutlineInputBorder()),
+              ),
+            ),
+            IconButton(
+                onPressed: () {
+                  String text = myController.text.trim().toString();
+                  if (text.isNotEmpty) {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: SingleChildScrollView(
+                                child: Text("글이 입력되었습니다.")),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("확인"))
+                            ],
+                          );
+                        });
+                  } else {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: SingleChildScrollView(
+                                child: Text("글을 입력해주세요.")),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("확인"))
+                            ],
+                          );
+                        });
+                  }
+                },
+                icon: Icon(Icons.arrow_circle_right))
+          ],
+        ),
+        TextButton(
+            onPressed: () {
+              if (userImage != null) {
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        content:
+                            SingleChildScrollView(child: Text("사진이 있습니다.")),
+                        actions: [
+                          TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("확인"))
+                        ],
+                      );
+                    });
+              } else {
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        content:
+                            SingleChildScrollView(child: Text("사진이 없습니다.")),
+                        actions: [
+                          TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("확인"))
+                        ],
+                      );
+                    });
+              }
+            },
+            child: Text("이미지 확인"))
+      ]),
     );
   }
 }
