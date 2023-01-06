@@ -5,8 +5,20 @@ import 'style.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import './pages/signup.dart';
+import './pages/login.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(MaterialApp(theme: theme, home: MyApp()));
 }
 
@@ -26,6 +38,8 @@ class _MyAppState extends State<MyApp> {
   var boards = 10;
   var follower = 100;
   var following = 100;
+  Map<String, dynamic> userData = {};
+  final firestore = FirebaseFirestore.instance;
 
   // 스크롤
   ScrollController _scrollController = ScrollController();
@@ -37,6 +51,7 @@ class _MyAppState extends State<MyApp> {
     });
 
     getData();
+    getUserData();
     super.initState();
   }
 
@@ -97,6 +112,21 @@ class _MyAppState extends State<MyApp> {
     setState(() {});
   }
 
+  // firebase 데이터 가져오기
+  getUserData() async {
+    try {
+      final result =
+          await firestore.collection('users').doc('LrqGYkaqO8M85iYJPZnT').get();
+
+      print(result['id']);
+
+      print("굿");
+    } catch (e) {
+      print("에러입니당");
+    }
+    ;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,7 +148,19 @@ class _MyAppState extends State<MyApp> {
 
               print(data);
             },
-          )
+          ),
+          TextButton(
+              onPressed: () async {
+                await Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => SignUp()));
+              },
+              child: Text("회원가입")),
+          TextButton(
+              onPressed: () async {
+                await Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => LogIn()));
+              },
+              child: Text("로그인"))
         ],
       ),
       body: [
@@ -127,7 +169,8 @@ class _MyAppState extends State<MyApp> {
             following: following,
             follower: follower,
             follow: follow,
-            data: data)
+            data: data,
+            getUserData: getUserData)
       ][tab],
       bottomNavigationBar: BottomNavigationBar(
         onTap: (i) {
@@ -210,9 +253,10 @@ class Profile extends StatefulWidget {
       required this.follower,
       required this.following,
       required this.follow,
-      required this.data});
+      required this.data,
+      required this.getUserData});
 
-  final following, follower, follow, data;
+  final following, follower, follow, data, getUserData;
 
   @override
   State<Profile> createState() => _ProfileState();
@@ -225,6 +269,15 @@ class _ProfileState extends State<Profile> {
       children: [
         Row(
           children: [
+            Column(
+              children: [
+                TextButton(
+                    onPressed: () {
+                      widget.getUserData();
+                    },
+                    child: Text("유저 데이터"))
+              ],
+            ),
             Column(
               children: [Text(widget.data.length.toString()), Text("게시물")],
             ),
